@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  name               String
+  result_duosmium_id String
+  data               Json      @db.JsonB
+  result             Result    @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade)
+  placings           Placing[]
+
+  @@id([result_duosmium_id, name])
+  // @@unique([result_duosmium_id, name])
+  @@map("events")
+}
+
+// model Histogram {
+//   result_duosmium_id String @id @unique
+//   data               Json @db.JsonB
+//   result             Result @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade)
+//
+//   @@map("histograms")
+// }
+
+/// This probably causes race conditions (bad!!!)
+// model Location {
+//   name    String
+//   city    String @default("")
+//   state   String
+//   country String @default("United States")
+
+//   @@id([name, city, state, country], map: "locations_name_city_state_country")
+//   @@unique([name, city, state, country], map: "locations_name_city_state_country_index")
+//   @@map("locations")
+// }
+
+model Penalty {
+  team_number        Int
+  team               Team   @relation(fields: [team_number, result_duosmium_id], references: [number, result_duosmium_id])
+  data               Json   @db.JsonB
+  result_duosmium_id String
+  result             Result @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade)
+
+  @@id([result_duosmium_id, team_number])
+  // @@unique([result_duosmium_id, team_number])
+  @@map("penalties")
+}
+
+model Placing {
+  event_name         String
+  event              Event  @relation(fields: [event_name, result_duosmium_id], references: [name, result_duosmium_id])
+  team_number        Int
+  team               Team   @relation(fields: [team_number, result_duosmium_id], references: [number, result_duosmium_id])
+  data               Json   @db.JsonB
+  result_duosmium_id String
+  result             Result @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade)
+
+  @@id([result_duosmium_id, event_name, team_number])
+  // @@unique([result_duosmium_id, event_name, team_number])
+  @@map("placings")
+}
+
+model Result {
+  duosmium_id String    @id //@unique(map: "results_duosmium_id_index")
+  logo        String
+  // color            String
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @updatedAt @db.Timestamptz(6)
+  official    Boolean   @default(false)
+  preliminary Boolean   @default(false)
+  title       String
+  // full_title       String
+  short_title String
+  // full_short_title String
+  date        String
+  // location    String
+  events      Event[]
+  histogram   Json?     @db.JsonB
+  penalties   Penalty[]
+  placings    Placing[]
+  teams       Team[]
+  tournament  Json      @db.JsonB
+  tracks      Track[]
+
+  @@map("results")
+}
+
+model Team {
+  number             Int
+  data               Json      @db.JsonB
+  name               String
+  city               String    @default("")
+  state              String
+  country            String    @default("United States")
+  rank               Int
+  track_rank         Int?
+  result_duosmium_id String
+  result             Result    @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade)
+  placings           Placing[]
+  penalties          Penalty[]
+  track              Track?    @relation(fields: [result_duosmium_id, track_name], references: [result_duosmium_id, name], onDelete: Restrict)
+  track_name         String?
+
+  @@id([result_duosmium_id, number])
+  // @@unique([result_duosmium_id, number])
+  @@map("teams")
+}
+
+// model Tournament {
+//   result_duosmium_id String @id @unique
+//   data               Json @db.JsonB
+//   result             Result @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade)
+//
+//   @@map("tournaments")
+// }
+
+model Track {
+  name               String
+  result_duosmium_id String
+  data               Json   @db.JsonB
+  result             Result @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade)
+  teams              Team[]
+
+  @@id([result_duosmium_id, name])
+  // @@unique([result_duosmium_id, name])
+  @@map("tracks")
+}
+
+// model SchoolPlacement {
+//   id                 String @id @default(uuid()) @db.Uuid
+//   school_name        String
+//   school_city        String @default("")
+//   school_state       String
+//   school_country     String @default("United States")
+//   result_duosmium_id String
+//   result             Result @relation(fields: [result_duosmium_id], references: [duosmium_id], onDelete: Cascade, map: "school_placements_result_duosmium_id_results_duosmium_id_fk")
+//   placement          Int
+
+//   @@map("school_placements")
+// }
