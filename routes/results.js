@@ -1,13 +1,13 @@
 const express = require("express");
 const {
-  getRecentResults,
+  getLatestResults,
   getAllCompleteResults,
   deleteAllResults,
   getAllResults,
   getCompleteResult,
   deleteResult,
   getResult,
-  countResultsByLevel,
+  countAllResultsByLevel,
   regenerateMetadata,
   regenerateAllMetadata,
     resultExists
@@ -82,7 +82,7 @@ router.post("/meta", async function (req, res, next) {
 /* Get most recently added results */
 router.get("/latest", async function (req, res, next) {
   const limit = req.query.limit ? Number(req.query.limit) : 5;
-  const output = await getRecentResults(false, limit);
+  const output = await getLatestResults(false, limit);
   res.json(output);
 });
 
@@ -95,12 +95,7 @@ router.get("/recent", async function (req, res, next) {
 
 /* Count results by level */
 router.get("/count", async function (req, res) {
-  const output = {
-    Invitational: await countResultsByLevel("Invitational"),
-    Regionals: await countResultsByLevel("Regionals"),
-    States: await countResultsByLevel("States"),
-    Nationals: await countResultsByLevel("Nationals"),
-  };
+  const output = await countAllResultsByLevel();
   res.json(output);
 });
 
