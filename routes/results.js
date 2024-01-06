@@ -13,6 +13,7 @@ const {
     resultExists
 } = require("../lib/results");
 const { getUserFromJWT, isAdmin } = require("../lib/auth");
+const {getAllFirstLetters, getSchoolRankingsCombinedName, getAllRankingsByLetter} = require("../lib/teams");
 const router = express.Router();
 
 /* MULTIPLE RESULTS */
@@ -29,13 +30,13 @@ router.post("/", async function (req, res, next) {
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
   } catch (e) {
-    res.status(401);
+    res.status(401).json();
     return;
   }
   if (isAdmin(user)) {
-    res.status(405);
+    res.status(405).json();
   } else {
-    res.status(403);
+    res.status(403).json();
   }
 });
 
@@ -45,14 +46,14 @@ router.delete("/", async function (req, res, next) {
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
   } catch (e) {
-    res.status(401);
+    res.status(401).json();
     return;
   }
   if (isAdmin(user)) {
     const output = await deleteAllResults();
     res.json(output);
   } else {
-    res.status(403);
+    res.status(403).json();
   }
 });
 
@@ -68,14 +69,14 @@ router.post("/meta", async function (req, res, next) {
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
   } catch (e) {
-    res.status(401);
+    res.status(401).json();
     return;
   }
   if (isAdmin(user)) {
     regenerateAllMetadata();
-    res.status(202);
+    res.status(202).json();
   } else {
-    res.status(403);
+    res.status(403).json();
   }
 });
 
@@ -104,7 +105,7 @@ router.get("/count", async function (req, res) {
 /* Get a result */
 router.get("/:id", async function (req, res, next) {
   if (!(await resultExists(req.params.id))) {
-    res.status(404);
+    res.status(404).json();
   }
   else {
     const output = await getCompleteResult(req.params.id);
@@ -118,14 +119,14 @@ router.delete("/:id", async function (req, res, next) {
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
   } catch (e) {
-    res.status(401);
+    res.status(401).json();
     return;
   }
   if (isAdmin(user)) {
     const output = await deleteResult(req.params.id);
     res.json(output);
   } else {
-    res.status(403);
+    res.status(403).json();
   }
 });
 
@@ -141,20 +142,63 @@ router.post("/:id/meta", async function (req, res, next) {
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
   } catch (e) {
-    res.status(401);
+    res.status(401).json();
     return;
   }
   if (isAdmin(user)) {
     regenerateMetadata(req.params.id);
-    res.status(202);
+    res.status(202).json();
   } else {
-    res.status(403);
+    res.status(403).json();
   }
 });
 
 /* Get a superscored result */
 router.get("/:id/superscore", async function (req, res, next) {
-  res.status(405);
+  res.status(405).json();
+});
+
+/* SCHOOLS */
+
+/* Get all starting letters of schools */
+router.get("/schools/letters", async function (req, res) {
+  const output = await getAllFirstLetters();
+  res.json(output);
+});
+
+/* Get all rankings for all schools starting with a certain letter */
+router.get("/schools/letters/:letter", async function (req, res) {
+  if (req.params.letter.length !== 1) {
+    res.status(400).json();
+  } else {
+    try {
+      const output = await getAllRankingsByLetter(req.params.letter);
+      res.json(output);
+    } catch (e) {
+      if (e.message.endsWith("No results!")) {
+        res.status(404).json();
+      }
+      else {
+        res.status(500).json();
+      }
+    }
+  }
+})
+
+/* Get all rankings for a single school */
+router.get("/schools/:name", async function (req, res) {
+  try {
+    const output = await getSchoolRankingsCombinedName(req.params.name);
+    res.json(output);
+  } catch (e) {
+    if (e.message.endsWith("is not a valid school name!")) {
+      res.status(400).json();
+    } else if (e.message.endsWith("This is not a real school!")) {
+      res.status(404).json();
+    } else {
+      res.status(500).json();
+    }
+  }
 });
 
 module.exports = router;
