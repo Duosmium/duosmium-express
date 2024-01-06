@@ -10,10 +10,14 @@ const {
   countAllResultsByLevel,
   regenerateMetadata,
   regenerateAllMetadata,
-    resultExists
+  resultExists,
 } = require("../lib/results");
 const { getUserFromJWT, isAdmin } = require("../lib/auth");
-const {getAllFirstLetters, getSchoolRankingsCombinedName, getAllRankingsByLetter} = require("../lib/teams");
+const {
+  getAllFirstLetters,
+  getSchoolRankingsCombinedName,
+  getAllRankingsByLetter,
+} = require("../lib/teams");
 const router = express.Router();
 
 /* MULTIPLE RESULTS */
@@ -106,8 +110,7 @@ router.get("/count", async function (req, res) {
 router.get("/:id", async function (req, res, next) {
   if (!(await resultExists(req.params.id))) {
     res.status(404).json();
-  }
-  else {
+  } else {
     const output = await getCompleteResult(req.params.id);
     res.json(output);
   }
@@ -177,13 +180,12 @@ router.get("/schools/letters/:letter", async function (req, res) {
     } catch (e) {
       if (e.message.endsWith("No results!")) {
         res.status(404).json();
-      }
-      else {
+      } else {
         res.status(500).json();
       }
     }
   }
-})
+});
 
 /* Get all rankings for a single school */
 router.get("/schools/:name", async function (req, res) {
