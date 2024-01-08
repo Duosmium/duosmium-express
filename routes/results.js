@@ -11,6 +11,12 @@ const {
   regenerateMetadata,
   regenerateAllMetadata,
   resultExists,
+  getTournamentTitles,
+  getAllTournamentsBySeason,
+  getTournamentsBySeason,
+  addResult,
+  getInterpreter,
+  createCompleteResultDataInput
 } = require("../lib/results");
 const { getUserFromJWT, isAdmin } = require("../lib/auth");
 const {
@@ -38,7 +44,9 @@ router.post("/", async function (req, res, next) {
     return;
   }
   if (isAdmin(user)) {
-    res.status(405).json();
+    const data = req.body;
+    addResult(await createCompleteResultDataInput(await getInterpreter(data)));
+    res.status(202).json();
   } else {
     res.status(403).json();
   }
@@ -101,6 +109,24 @@ router.get("/recent", async function (req, res, next) {
 /* Count results by level */
 router.get("/count", async function (req, res) {
   const output = await countAllResultsByLevel();
+  res.json(output);
+});
+
+/* Get all tournament titles */
+router.get("/titles", async function (req, res) {
+  const output = await getTournamentTitles();
+  res.json(output);
+});
+
+/* Get all results' title, date, and location, by season */
+router.get("/seasons", async function (req, res) {
+  const output = await getAllTournamentsBySeason();
+  res.json(output);
+});
+
+/* Get all results' title, date, and location, for a specific season */
+router.get("/seasons/:season", async function (req, res) {
+  const output = await getTournamentsBySeason(Number(req.params.season));
   res.json(output);
 });
 
