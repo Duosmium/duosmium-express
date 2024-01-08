@@ -24,9 +24,9 @@ router.post("/logout", async function (req, res) {
   } else {
     try {
       await logout(jwt);
-      res.status(205);
+      res.status(205).json();
     } catch (e) {
-      res.status(500);
+      res.status(500).json();
     }
   }
 });

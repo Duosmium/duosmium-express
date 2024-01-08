@@ -8,8 +8,10 @@ router.get("/logos/:path", async function (req, res, next) {
     if (output.error) {
         if (output.error.message === 'Object not found') {
             res.status(404).json();
-        } else {
+        } else if (output.error.status) {
             res.status(output.error.status).json();
+        } else {
+            res.status(500).json();
         }
     } else {
         const data = await output.data.arrayBuffer();

@@ -1,6 +1,6 @@
 # Duosmium Results Backend
 
-This repository contains the codebase for the frontend of the next version of [Duosmium Results](https://www.duosmium.org), written using Express and Supabase. The frontend is available at <https://github.com/Duosmium/duosmium-sveltekit>.
+This repository contains the codebase for the backend of the next version of [Duosmium Results](https://www.duosmium.org), written using Express and Supabase. The frontend is available at <https://github.com/Duosmium/duosmium-sveltekit>.
 
 You can access the production instance here: <https://api.duosmium.org>
 
