@@ -19,19 +19,27 @@ router.post("/login", async function (req, res) {
 /* Logout */
 router.post("/logout", async function (req, res) {
   const jwt = req.get("Authorization").split(" ")[1];
-  try {
-    await logout(jwt);
-    res.status(205);
-  } catch (e) {
-    res.status(500);
+  if (jwt === "undefined") {
+    res.status(401).json();
+  } else {
+    try {
+      await logout(jwt);
+      res.status(205);
+    } catch (e) {
+      res.status(500);
+    }
   }
 });
 
 /* Check if admin */
 router.post("/admin", async function (req, res) {
   const jwt = req.get("Authorization").split(" ")[1];
-  const user = await getUserFromJWT(jwt);
-  res.json({admin: isAdmin(user)});
+  if (jwt === "undefined") {
+    res.status(401).json();
+  } else {
+    const user = await getUserFromJWT(jwt);
+    res.json({admin: isAdmin(user)});
+  }
 })
 
 /* Refresh session */
