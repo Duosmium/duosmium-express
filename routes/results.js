@@ -29,13 +29,13 @@ const router = express.Router();
 /* MULTIPLE RESULTS */
 
 /* Get all results */
-router.get("/", async function (req, res, next) {
+router.get("/", async function (req, res) {
   const output = await getAllCompleteResults();
   res.json(output);
 });
 
 /* Add/update a result */
-router.post("/", async function (req, res, next) {
+router.post("/", async function (req, res) {
   let user;
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
@@ -45,15 +45,18 @@ router.post("/", async function (req, res, next) {
   }
   if (isAdmin(user)) {
     const data = req.body;
-    addResult(await createCompleteResultDataInput(await getInterpreter(data)));
+    const prom = addResult(
+      await createCompleteResultDataInput(await getInterpreter(data)),
+    );
     res.status(202).json();
+    await prom;
   } else {
     res.status(403).json();
   }
 });
 
 /* Delete all results */
-router.delete("/", async function (req, res, next) {
+router.delete("/", async function (req, res) {
   let user;
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
@@ -62,21 +65,22 @@ router.delete("/", async function (req, res, next) {
     return;
   }
   if (isAdmin(user)) {
-    const output = await deleteAllResults();
-    res.json(output);
+    const prom = deleteAllResults();
+    res.status(202).json();
+    await prom;
   } else {
     res.status(403).json();
   }
 });
 
 /* Get all results' metadata */
-router.get("/meta", async function (req, res, next) {
+router.get("/meta", async function (req, res) {
   const output = await getAllResults();
   res.json(output);
 });
 
 /* Regenerate all results' metadata */
-router.post("/meta", async function (req, res, next) {
+router.post("/meta", async function (req, res) {
   let user;
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
@@ -85,22 +89,23 @@ router.post("/meta", async function (req, res, next) {
     return;
   }
   if (isAdmin(user)) {
-    regenerateAllMetadata();
+    const prom = regenerateAllMetadata();
     res.status(202).json();
+    await prom;
   } else {
     res.status(403).json();
   }
 });
 
 /* Get most recently added results */
-router.get("/latest", async function (req, res, next) {
+router.get("/latest", async function (req, res) {
   const limit = req.query.limit ? Number(req.query.limit) : 5;
   const output = await getLatestResults(false, limit);
   res.json(output);
 });
 
 /* Get most recent (by date occurred) results */
-router.get("/recent", async function (req, res, next) {
+router.get("/recent", async function (req, res) {
   const limit = req.query.limit ? Number(req.query.limit) : 24;
   const output = await getAllResults(false, limit);
   res.json(output);
@@ -133,7 +138,7 @@ router.get("/seasons/:season", async function (req, res) {
 /* INDIVIDUAL RESULTS */
 
 /* Get a result */
-router.get("/:id", async function (req, res, next) {
+router.get("/:id", async function (req, res) {
   if (await resultExists(req.params.id)) {
     const output = await getCompleteResult(req.params.id);
     res.json(output);
@@ -143,7 +148,7 @@ router.get("/:id", async function (req, res, next) {
 });
 
 /* Delete a result */
-router.delete("/:id", async function (req, res, next) {
+router.delete("/:id", async function (req, res) {
   let user;
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
@@ -153,8 +158,9 @@ router.delete("/:id", async function (req, res, next) {
   }
   if (isAdmin(user)) {
     if (await resultExists(req.params.id)) {
-      const output = await deleteResult(req.params.id);
-      res.json(output);
+      const prom = deleteResult(req.params.id);
+      res.status(202).json();
+      await prom;
     } else {
       res.status(404).json();
     }
@@ -164,7 +170,7 @@ router.delete("/:id", async function (req, res, next) {
 });
 
 /* Get a result's metadata */
-router.get("/:id/meta", async function (req, res, next) {
+router.get("/:id/meta", async function (req, res) {
   if (await resultExists(req.params.id)) {
     const output = await getResult(req.params.id);
     res.json(output);
@@ -174,7 +180,7 @@ router.get("/:id/meta", async function (req, res, next) {
 });
 
 /* Regenerate a result's metadata */
-router.post("/:id/meta", async function (req, res, next) {
+router.post("/:id/meta", async function (req, res) {
   let user;
   try {
     user = await getUserFromJWT(req.get("Authorization").split(" ")[1]);
@@ -184,8 +190,9 @@ router.post("/:id/meta", async function (req, res, next) {
   }
   if (isAdmin(user)) {
     if (await resultExists(req.params.id)) {
-      regenerateMetadata(req.params.id);
+      const prom = regenerateMetadata(req.params.id);
       res.status(202).json();
+      await prom;
     } else {
       res.status(404).json();
     }
@@ -195,7 +202,7 @@ router.post("/:id/meta", async function (req, res, next) {
 });
 
 /* Get a superscored result */
-router.get("/:id/superscore", async function (req, res, next) {
+router.get("/:id/superscore", async function (req, res) {
   res.status(405).json();
 });
 
