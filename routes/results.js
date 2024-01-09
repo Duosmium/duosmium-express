@@ -16,7 +16,7 @@ const {
   getTournamentsBySeason,
   addResult,
   getInterpreter,
-  createCompleteResultDataInput
+  createCompleteResultDataInput,
 } = require("../lib/results");
 const { getUserFromJWT, isAdmin } = require("../lib/auth");
 const {
@@ -134,11 +134,11 @@ router.get("/seasons/:season", async function (req, res) {
 
 /* Get a result */
 router.get("/:id", async function (req, res, next) {
-  if (!(await resultExists(req.params.id))) {
-    res.status(404).json();
-  } else {
+  if (await resultExists(req.params.id)) {
     const output = await getCompleteResult(req.params.id);
     res.json(output);
+  } else {
+    res.status(404).json();
   }
 });
 
@@ -152,8 +152,12 @@ router.delete("/:id", async function (req, res, next) {
     return;
   }
   if (isAdmin(user)) {
-    const output = await deleteResult(req.params.id);
-    res.json(output);
+    if (await resultExists(req.params.id)) {
+      const output = await deleteResult(req.params.id);
+      res.json(output);
+    } else {
+      res.status(404).json();
+    }
   } else {
     res.status(403).json();
   }
@@ -161,8 +165,12 @@ router.delete("/:id", async function (req, res, next) {
 
 /* Get a result's metadata */
 router.get("/:id/meta", async function (req, res, next) {
-  const output = await getResult(req.params.id);
-  res.json(output);
+  if (await resultExists(req.params.id)) {
+    const output = await getResult(req.params.id);
+    res.json(output);
+  } else {
+    res.status(404).json();
+  }
 });
 
 /* Regenerate a result's metadata */
@@ -175,8 +183,12 @@ router.post("/:id/meta", async function (req, res, next) {
     return;
   }
   if (isAdmin(user)) {
-    regenerateMetadata(req.params.id);
-    res.status(202).json();
+    if (await resultExists(req.params.id)) {
+      regenerateMetadata(req.params.id);
+      res.status(202).json();
+    } else {
+      res.status(404).json();
+    }
   } else {
     res.status(403).json();
   }

@@ -1,5 +1,11 @@
 const express = require("express");
-const { login, logout, getUserFromJWT, isAdmin, refresh } = require("../lib/auth");
+const {
+  login,
+  logout,
+  getUserFromJWT,
+  isAdmin,
+  refresh,
+} = require("../lib/auth");
 const router = express.Router();
 
 /* Login */
@@ -38,9 +44,9 @@ router.post("/admin", async function (req, res) {
     res.status(401).json();
   } else {
     const user = await getUserFromJWT(jwt);
-    res.json({admin: isAdmin(user)});
+    res.json({ admin: isAdmin(user) });
   }
-})
+});
 
 /* Refresh session */
 router.post("/refresh", async function (req, res) {
